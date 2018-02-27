@@ -1,0 +1,15 @@
+LICENSE
+MANIFEST.in
+README.md
+setup.cfg
+kpr/__init__.py
+kpr/base.py
+kpr/test_user_show.py
+kpr.egg-info/PKG-INFO
+kpr.egg-info/SOURCES.txt
+kpr.egg-info/dependency_links.txt
+kpr.egg-info/not-zip-safe
+kpr.egg-info/pbr.json
+kpr.egg-info/top_level.txt
+kpr/utils/__init__.py
+kpr/utils/clients.py
