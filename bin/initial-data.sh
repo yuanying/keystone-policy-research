@@ -14,46 +14,56 @@
 
 openstack role create project_admin
 
-openstack project create project1 \
+openstack project create projectA \
   --domain default \
   --enable
-openstack project create project2 \
+openstack project create projectB \
   --domain default \
   --enable
 
-openstack user create project1_admin \
+openstack user create projectA_admin \
   --domain default \
-  --project project1 \
+  --project projectA \
   --password password
 
 openstack role add \
-  --user project1_admin \
-  --project project1 \
+  --user projectA_admin \
+  --project projectA \
   project_admin
 
-openstack user create project1_user \
+openstack user create projectA_user \
   --domain default \
-  --project project1 \
-  --password password
-
-openstack user create project2_admin \
-  --domain default \
-  --project project2 \
+  --project projectA \
   --password password
 
 openstack role add \
-  --user project2_admin \
-  --project project2 \
+  --user projectA_user \
+  --project projectA \
+  Member
+
+openstack user create projectB_admin \
+  --domain default \
+  --project projectB \
+  --password password
+
+openstack role add \
+  --user projectB_admin \
+  --project projectB \
   project_admin
 
-openstack user create project2_user \
+openstack user create projectB_user \
   --domain default \
-  --project project2 \
+  --project projectB \
   --password password
+
+openstack role add \
+  --user projectB_user \
+  --project projectB \
+  Member
 
 ## Assign project1_admin to project2
 
 openstack role add \
-  --user project1_admin \
-  --project project2 \
+  --user projectA_admin \
+  --project projectB \
   Member

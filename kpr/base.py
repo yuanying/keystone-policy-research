@@ -26,57 +26,106 @@ class TestCase(unittest.TestCase):
         self.project_admin_role = self.admin.roles.find(
             name='project_admin'
         )
+        self.project_member_role = self.admin.roles.find(
+            name='Member'
+        )
 
     def setup_project(self, project='project1'):
-        project_admin = '{}_admin'.format(project)
-        project_user = '{}_user'.format(project)
+        try:
+            project_admin = '{}_admin'.format(project)
+            project_user = '{}_user'.format(project)
 
-        setattr(
-            self,
-            project,
-            self.admin.projects.create(
+            project_instance = self.admin.projects.create(
                 project,
                 'default'
             )
-        )
-        setattr(
-            self,
-            project_admin,
-            self.admin.users.create(
+            setattr(
+                self,
+                project,
+                project_instance
+            )
+            project_admin_instance = self.admin.users.create(
                 project_admin,
                 domain='default',
-                default_project=getattr(self, project),
+                default_project=project_instance,
                 password='openstack',
             )
-        )
-        self.admin.roles.grant(
-            self.project_admin_role,
-            user=getattr(self, project_admin),
-            project=getattr(self, project)
-        )
-        setattr(
-            self,
-            project_user,
-            self.admin.users.create(
-                project_user,
-                domain='default',
-                default_project=getattr(self, project),
-                password='openstack',
+            setattr(
+                self,
+                project_admin,
+                project_admin_instance
             )
-        )
+            self.admin.roles.grant(
+                self.project_admin_role,
+                user=project_admin_instance,
+                project=project_instance
+            )
+            for i in (0, 1):
+                _project_user = '{}{}'.format(project_user, i)
+                _project_user_instance = self.admin.users.create(
+                    _project_user,
+                    domain='default',
+                    default_project=getattr(self, project),
+                    password='openstack',
+                )
+                setattr(
+                    self,
+                    _project_user,
+                    _project_user_instance,
+                )
+            self.admin.roles.grant(
+                self.project_member_role,
+                user=_project_user_instance,
+                project=project_instance
+            )
+        except Exception as e:
+            pass
 
     def teardown_project(self, project='project1'):
-        project_admin = '{}_admin'.format(project)
-        project_admin = getattr(self, project_admin)
         project_user = '{}_user'.format(project)
-        project_user = getattr(self, project_user)
-        project = getattr(self, project)
+        project_admin = '{}_admin'.format(project)
+        # project_admin = getattr(self, project_admin)
+        try:
+            project_admin = self.admin.users.find(name=project_admin)
+        except Exception as e:
+            pass
 
-        self.admin.roles.revoke(
-            self.project_admin_role,
-            user=project_admin,
-            project=project,
-        )
-        self.admin.users.delete(project_admin)
-        self.admin.users.delete(project_user)
-        self.admin.projects.delete(project)
+        # project = getattr(self, project)
+        try:
+            project = self.admin.projects.find(name=project)
+        except Exception as e:
+            raise
+
+        try:
+            self.admin.roles.revoke(
+                self.project_admin_role,
+                user=project_admin,
+                project=project,
+            )
+        except Exception as e:
+            pass
+
+        try:
+            self.admin.users.delete(project_admin)
+        except Exception as e:
+            pass
+
+
+        for i in (0, 1):
+            _project_user = '{}{}'.format(project_user, i)
+            # _project_user = getattr(self, _project_user)
+            try:
+                _project_user = self.admin.users.find(name=_project_user)
+                self.admin.roles.revoke(
+                    self.project_member_role,
+                    user=_project_user,
+                    project=project,
+                )
+                self.admin.users.delete(_project_user)
+            except Exception as e:
+                pass
+
+        try:
+            self.admin.projects.delete(project)
+        except Exception as e:
+            pass

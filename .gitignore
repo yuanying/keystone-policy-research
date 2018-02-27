@@ -14,8 +14,8 @@ AUTHORS
 ChangeLog
 build
 dist
-python_keystoneclient.egg-info
-keystoneclient/versioninfo
+kpr.egg-info
+kpr/versioninfo
 doc/source/api
 # Development environment files
 .project
