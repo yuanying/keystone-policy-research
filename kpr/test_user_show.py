@@ -123,6 +123,15 @@ class TestUserShow(base.TestCase):
                 user=self.project1_admin,
                 project=self.project2
             )
+            # project2 で認証していても、自分を表示することは可能。
+            self.assertEqual(
+                self.project1_admin.id,
+                self.os_run(
+                    project='project2',
+                    username='project1_admin',
+                    command=['user', 'show', self.project1_admin.id],
+                )['id']
+            )
             try:
                 self.os_run(
                     project='project2',
