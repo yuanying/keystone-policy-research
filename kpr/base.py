@@ -14,10 +14,19 @@
 import json
 import mock
 import os
+import random
+import string
 import subprocess
 import unittest
 
 from kpr.utils import clients
+
+
+def id_generator(
+        size=8,
+        chars=string.ascii_uppercase + string.ascii_lowercase + string.digits
+    ):
+    return ''.join(random.choice(chars) for _ in range(size))
 
 
 class TestCase(unittest.TestCase):
@@ -66,11 +75,13 @@ class TestCase(unittest.TestCase):
 
     def setup_project(self, project='project1'):
         try:
+            project_name = '{}-{}'.format(project, id_generator())
             project_admin = '{}_admin'.format(project)
+            project_admin_name = '{}_admin-{}'.format(project, id_generator())
             project_user = '{}_user'.format(project)
 
             project_instance = self.admin.projects.create(
-                project,
+                project_name,
                 clients.OS_PROJECT_DOMAIN_ID
             )
             setattr(
@@ -79,7 +90,7 @@ class TestCase(unittest.TestCase):
                 project_instance
             )
             project_admin_instance = self.admin.users.create(
-                project_admin,
+                project_admin_name,
                 domain=clients.OS_USER_DOMAIN_ID,
                 default_project=project_instance,
                 password=clients.OS_PASSWORD,
@@ -96,8 +107,10 @@ class TestCase(unittest.TestCase):
             )
             for i in (0, 1):
                 _project_user = '{}{}'.format(project_user, i)
+                _project_user_name = '{}-{}'.format(
+                    _project_user, id_generator())
                 _project_user_instance = self.admin.users.create(
-                    _project_user,
+                    _project_user_name,
                     domain=clients.OS_USER_DOMAIN_ID,
                     default_project=project_instance,
                     password=clients.OS_PASSWORD,
@@ -118,17 +131,17 @@ class TestCase(unittest.TestCase):
     def teardown_project(self, project='project1'):
         project_user = '{}_user'.format(project)
         project_admin = '{}_admin'.format(project)
-        # project_admin = getattr(self, project_admin)
-        try:
-            project_admin = self.admin.users.find(name=project_admin)
-        except Exception as e:
-            pass
+        project_admin = getattr(self, project_admin)
+        # try:
+        #     project_admin = self.admin.users.find(name=project_admin)
+        # except Exception as e:
+        #     pass
 
-        # project = getattr(self, project)
-        try:
-            project = self.admin.projects.find(name=project)
-        except Exception as e:
-            raise
+        project = getattr(self, project)
+        # try:
+        #     project = self.admin.projects.find(name=project)
+        # except Exception as e:
+        #     raise
 
         try:
             self.admin.roles.revoke(
@@ -147,11 +160,11 @@ class TestCase(unittest.TestCase):
 
         for i in (0, 1):
             _project_user = '{}{}'.format(project_user, i)
-            # _project_user = getattr(self, _project_user)
-            try:
-                _project_user = self.admin.users.find(name=_project_user)
-            except Exception as e:
-                pass
+            _project_user = getattr(self, _project_user)
+            # try:
+            #     _project_user = self.admin.users.find(name=_project_user)
+            # except Exception as e:
+            #     pass
             try:
                 self.admin.roles.revoke(
                     self.project_member_role,

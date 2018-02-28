@@ -70,8 +70,8 @@ class TestUserShow(base.TestCase):
         self.assertEqual(
             self.project1_admin.id,
             self.os_run(
-                project='project1',
-                username='project1_admin',
+                project=self.project1.name,
+                username=self.project1_admin.name,
                 command=['user', 'show', self.project1_admin.id],
             )['id']
         )
@@ -81,8 +81,8 @@ class TestUserShow(base.TestCase):
         self.assertEqual(
             self.project1_user0.id,
             self.os_run(
-                project='project1',
-                username='project1_admin',
+                project=self.project1.name,
+                username=self.project1_admin.name,
                 command=['user', 'show', self.project1_user0.id],
             )['id']
         )
@@ -91,8 +91,8 @@ class TestUserShow(base.TestCase):
     def test_get_different_project_admin_by_project_admin(self):
         try:
             self.os_run(
-                project='project1',
-                username='project1_admin',
+                project=self.project1.name,
+                username=self.project1_admin.name,
                 command=['user', 'show', self.project2_admin.id],
             )
             self.fail("User '{}' must not show {}".format(
@@ -105,8 +105,8 @@ class TestUserShow(base.TestCase):
     def test_get_different_project_user_by_project_admin(self):
         try:
             self.os_run(
-                project='project1',
-                username='project1_admin',
+                project=self.project1.name,
+                username=self.project1_admin.name,
                 command=['user', 'show', self.project2_user0.id],
             )
             self.fail("User '{}' must not show {}".format(
@@ -127,15 +127,15 @@ class TestUserShow(base.TestCase):
             self.assertEqual(
                 self.project1_admin.id,
                 self.os_run(
-                    project='project2',
-                    username='project1_admin',
+                    project=self.project2.name,
+                    username=self.project1_admin.name,
                     command=['user', 'show', self.project1_admin.id],
                 )['id']
             )
             try:
                 self.os_run(
-                    project='project2',
-                    username='project1_admin',
+                    project=self.project2.name,
+                    username=self.project1_admin.name,
                     command=['user', 'show', self.project1_user0.id],
                 )
                 self.fail("User '{}' must not show {}".format(
