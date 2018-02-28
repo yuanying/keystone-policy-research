@@ -99,7 +99,7 @@ class TestUserShow(base.TestCase):
                 'project1_admin', 'project2_admin'
             ))
         except subprocess.CalledProcessError as e:
-            self.assertRegex(e.output.decode('utf-8'), '403')
+            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
     # プロジェクト1管理者はプロジェクト2のユーザを表示できない。
     def test_get_different_project_user_by_project_admin(self):
@@ -113,7 +113,7 @@ class TestUserShow(base.TestCase):
                 'project1_admin', 'project2_user0'
             ))
         except subprocess.CalledProcessError as e:
-            self.assertRegex(e.output.decode('utf-8'), '403')
+            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
     # プロジェクト2のユーザ権限で認証されたプロジェクト1管理者はプロジェクト1のユーザを表示できない。
     def test_get_different_project_user_by_project_admin_user(self):
@@ -142,7 +142,7 @@ class TestUserShow(base.TestCase):
                     'project1_admin', 'project1_user0'
                 ))
             except subprocess.CalledProcessError as e:
-                self.assertRegex(e.output.decode('utf-8'), '403')
+                self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
         except Exception as e:
             pass
         finally:
