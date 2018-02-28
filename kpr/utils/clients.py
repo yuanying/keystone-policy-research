@@ -29,6 +29,10 @@ OS_REGION_NAME = os.environ.get('OS_REGION_NAME','RegionOne')
 OS_USERNAME = os.environ.get('OS_USERNAME','admin')
 OS_USER_DOMAIN_ID = os.environ.get('OS_USER_DOMAIN_ID','default')
 
+OS_ADMIN_PASSWORD = OS_PASSWORD
+OS_ADMIN_USERNAME = OS_USERNAME
+OS_ADMIN_PROJECT_NAME = OS_PROJECT_NAME
+
 def get_admin_client():
     auth = v3.Password(
         auth_url=OS_AUTH_URL,

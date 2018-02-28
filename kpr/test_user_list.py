@@ -34,8 +34,8 @@ class TestUserList(base.TestCase):
         try:
             self.os_run(
                 command=['user', 'list'],
-                project=clients.OS_PROJECT_NAME,
-                username=clients.OS_USERNAME,
+                project=clients.OS_ADMIN_PROJECT_NAME,
+                username=clients.OS_ADMIN_USERNAME,
             )
         except subprocess.CalledProcessError as e:
             self.failed("Failed to list all User by cloud admin")

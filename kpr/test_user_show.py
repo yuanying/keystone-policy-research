@@ -36,32 +36,32 @@ class TestUserShow(base.TestCase):
             self.project1_admin.id,
             self.os_run(
                 command=['user', 'show', self.project1_admin.id],
-                project=clients.OS_PROJECT_NAME,
-                username=clients.OS_USERNAME,
+                project=clients.OS_ADMIN_PROJECT_NAME,
+                username=clients.OS_ADMIN_USERNAME,
             )['id']
         )
         self.assertEqual(
             self.project2_admin.id,
             self.os_run(
                 command=['user', 'show', self.project2_admin.id],
-                project=clients.OS_PROJECT_NAME,
-                username=clients.OS_USERNAME,
+                project=clients.OS_ADMIN_PROJECT_NAME,
+                username=clients.OS_ADMIN_USERNAME,
             )['id']
         )
         self.assertEqual(
             self.project1_user0.id,
             self.os_run(
                 command=['user', 'show', self.project1_user0.id],
-                project=clients.OS_PROJECT_NAME,
-                username=clients.OS_USERNAME,
+                project=clients.OS_ADMIN_PROJECT_NAME,
+                username=clients.OS_ADMIN_USERNAME,
             )['id']
         )
         self.assertEqual(
             self.project2_user0.id,
             self.os_run(
                 command=['user', 'show', self.project2_user0.id],
-                project=clients.OS_PROJECT_NAME,
-                username=clients.OS_USERNAME,
+                project=clients.OS_ADMIN_PROJECT_NAME,
+                username=clients.OS_ADMIN_USERNAME,
             )['id']
         )
 
