@@ -12,6 +12,7 @@
 #    under the License.
 
 from keystoneauth1.exceptions import http
+import subprocess
 
 from kpr import base
 from kpr.utils import clients
@@ -32,65 +33,87 @@ class TestUserShow(base.TestCase):
     # クラウド管理者は全てのユーザを表示することができる。
     def test_get_all_users_by_cloud_admin(self):
         self.assertEqual(
-            self.project1_admin,
-            self.admin.users.get(self.project1_admin)
+            self.project1_admin.id,
+            self.os_run(
+                command=['user', 'show', self.project1_admin.id],
+                project=clients.OS_PROJECT_NAME,
+                username=clients.OS_USERNAME,
+            )['id']
         )
         self.assertEqual(
-            self.project2_admin,
-            self.admin.users.get(self.project2_admin)
+            self.project2_admin.id,
+            self.os_run(
+                command=['user', 'show', self.project2_admin.id],
+                project=clients.OS_PROJECT_NAME,
+                username=clients.OS_USERNAME,
+            )['id']
         )
         self.assertEqual(
-            self.project1_user1,
-            self.admin.users.get(self.project1_user1)
+            self.project1_user0.id,
+            self.os_run(
+                command=['user', 'show', self.project1_user0.id],
+                project=clients.OS_PROJECT_NAME,
+                username=clients.OS_USERNAME,
+            )['id']
         )
         self.assertEqual(
-            self.project2_user1,
-            self.admin.users.get(self.project2_user1)
+            self.project2_user0.id,
+            self.os_run(
+                command=['user', 'show', self.project2_user0.id],
+                project=clients.OS_PROJECT_NAME,
+                username=clients.OS_USERNAME,
+            )['id']
         )
 
     # プロジェクト1管理者は自分を表示することができる。
     def test_get_self_by_project_admin(self):
-        project1_admin_client = clients.get_client(
-            'project1',
-            'project1_admin'
-        )
-
         self.assertEqual(
-            self.project1_admin,
-            project1_admin_client.users.get(self.project1_admin)
+            self.project1_admin.id,
+            self.os_run(
+                project='project1',
+                username='project1_admin',
+                command=['user', 'show', self.project1_admin.id],
+            )['id']
         )
 
     # プロジェクト1管理者はプロジェクト1のユーザを表示することができる。
     def test_get_same_project_user_by_project_admin(self):
-        project1_admin_client = clients.get_client(
-            'project1',
-            'project1_admin'
-        )
-
         self.assertEqual(
-            self.project1_user1,
-            project1_admin_client.users.get(self.project1_user1)
+            self.project1_user0.id,
+            self.os_run(
+                project='project1',
+                username='project1_admin',
+                command=['user', 'show', self.project1_user0.id],
+            )['id']
         )
 
     # プロジェクト1管理者はプロジェクト2のプロジェクト管理者を表示できない。
     def test_get_different_project_admin_by_project_admin(self):
-        project1_admin_client = clients.get_client(
-            'project1',
-            'project1_admin'
-        )
-
-        with self.assertRaises(http.Forbidden):
-            project1_admin_client.users.get(self.project2_admin)
+        try:
+            self.os_run(
+                project='project1',
+                username='project1_admin',
+                command=['user', 'show', self.project2_admin.id],
+            )
+            self.fail("User '{}' must not show {}".format(
+                'project1_admin', 'project2_admin'
+            ))
+        except subprocess.CalledProcessError as e:
+            self.assertRegex(e.output.decode('utf-8'), '403')
 
     # プロジェクト1管理者はプロジェクト2のユーザを表示できない。
     def test_get_different_project_user_by_project_admin(self):
-        project1_admin_client = clients.get_client(
-            'project1',
-            'project1_admin'
-        )
-
-        with self.assertRaises(http.Forbidden):
-            project1_admin_client.users.get(self.project2_user1)
+        try:
+            self.os_run(
+                project='project1',
+                username='project1_admin',
+                command=['user', 'show', self.project2_user0.id],
+            )
+            self.fail("User '{}' must not show {}".format(
+                'project1_admin', 'project2_user0'
+            ))
+        except subprocess.CalledProcessError as e:
+            self.assertRegex(e.output.decode('utf-8'), '403')
 
     # プロジェクト2のユーザ権限で認証されたプロジェクト1管理者はプロジェクト1のユーザを表示できない。
     def test_get_different_project_user_by_project_admin_user(self):
@@ -100,12 +123,17 @@ class TestUserShow(base.TestCase):
                 user=self.project1_admin,
                 project=self.project2
             )
-            project1_admin_user_client = clients.get_client(
-                'project2',
-                'project1_admin'
-            )
-            with self.assertRaises(http.Forbidden):
-                project1_admin_user_client.users.get(self.project1_user)
+            try:
+                self.os_run(
+                    project='project2',
+                    username='project1_admin',
+                    command=['user', 'show', self.project1_user0.id],
+                )
+                self.fail("User '{}' must not show {}".format(
+                    'project1_admin', 'project1_user0'
+                ))
+            except subprocess.CalledProcessError as e:
+                self.assertRegex(e.output.decode('utf-8'), '403')
         except Exception as e:
             pass
         finally:

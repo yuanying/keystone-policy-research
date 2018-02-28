@@ -41,7 +41,7 @@
     "identity:update_project": "rule:admin_required",
     "identity:delete_project": "rule:admin_required",
 
-    "identity:get_user": "rule:admin_or_owner",
+    "identity:get_user": "rule:admin_or_owner or (role:project_admin and project_id:%(target.user.default_project_id)s)",
     "identity:list_users": "rule:admin_required",
     "identity:create_user": "rule:admin_required",
     "identity:update_user": "rule:admin_required",
@@ -93,7 +93,7 @@
     "identity:create_grant": "rule:admin_required",
     "identity:revoke_grant": "rule:admin_required",
 
-    "identity:list_role_assignments": "rule:admin_required",
+    "identity:list_role_assignments": "rule:admin_required or (role:project_admin and project_id:%(scope.project.id)s)",
     "identity:list_role_assignments_for_tree": "rule:admin_required",
 
     "identity:get_policy": "rule:admin_required",

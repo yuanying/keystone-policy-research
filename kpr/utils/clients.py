@@ -11,32 +11,32 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
+
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
 from keystoneclient.v3 import client
 
+os_auth_url = os.environ.get('OS_AUTH_URL', 'http://172.18.11.197/identity/')
+if not os_auth_url.endswith('/v3'):
+    os_auth_url = "{}/v3".format(os_auth_url)
+
+OS_AUTH_URL = os_auth_url
+OS_PASSWORD = os.environ.get('OS_PASSWORD','openstack')
+OS_PROJECT_DOMAIN_ID = os.environ.get('OS_PROJECT_DOMAIN_ID','default')
+OS_PROJECT_NAME = os.environ.get('OS_PROJECT_NAME','admin')
+OS_REGION_NAME = os.environ.get('OS_REGION_NAME','RegionOne')
+OS_USERNAME = os.environ.get('OS_USERNAME','admin')
+OS_USER_DOMAIN_ID = os.environ.get('OS_USER_DOMAIN_ID','default')
 
 def get_admin_client():
     auth = v3.Password(
-        auth_url="http://172.18.11.197/identity/v3",
-        username="admin",
-        project_name="admin",
-        password="openstack",
-        user_domain_id="default",
-        project_domain_id="default",
-    )
-    sess = session.Session(auth=auth)
-    return client.Client(session=sess)
-
-
-def get_client(project, username):
-    auth = v3.Password(
-        auth_url="http://172.18.11.197/identity/v3",
-        username=username,
-        project_name=project,
-        password="openstack",
-        user_domain_id="default",
-        project_domain_id="default",
+        auth_url=OS_AUTH_URL,
+        username=OS_USERNAME,
+        project_name=OS_PROJECT_NAME,
+        password=OS_PASSWORD,
+        user_domain_id=OS_USER_DOMAIN_ID,
+        project_domain_id=OS_PROJECT_DOMAIN_ID,
     )
     sess = session.Session(auth=auth)
     return client.Client(session=sess)
