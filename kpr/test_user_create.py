@@ -140,6 +140,10 @@ class TestUserCreate(base.TestCase):
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
+    # Project1 テナント管理者は Project2 で認証した場合、Project1 に属するユーザを作成することができない。
+    def test_create_project1_user_by_project_admin_user_with_project1_creds(self):
+        pass
+
     # Project1 テナントユーザは Project1 に属するユーザを作成することができない。
     def test_create_project1_user_by_project1_user(self):
         testuser = 'testuser-{}'.format(base.id_generator())

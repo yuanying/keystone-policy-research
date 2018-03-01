@@ -49,6 +49,20 @@ def getid(obj):
 
 class TestCase(unittest.TestCase):
 
+    def create_user(self, project, username, role):
+        user = self.admin.users.create(
+            username,
+            domain=clients.OS_USER_DOMAIN_ID,
+            default_project=project,
+            password=clients.OS_PASSWORD,
+        )
+        self.admin.roles.grant(
+            role,
+            user=user,
+            project=project,
+        )
+        return user
+
     def delete_user(self, project, user, role):
         try:
             self.admin.roles.revoke(
@@ -136,41 +150,30 @@ class TestCase(unittest.TestCase):
                 project,
                 project_instance
             )
-            project_admin_instance = self.admin.users.create(
+            project_admin_instance = self.create_user(
+                project_instance,
                 project_admin_name,
-                domain=clients.OS_USER_DOMAIN_ID,
-                default_project=project_instance,
-                password=clients.OS_PASSWORD,
+                self.project_admin_role
             )
             setattr(
                 self,
                 project_admin,
                 project_admin_instance
             )
-            self.admin.roles.grant(
-                self.project_admin_role,
-                user=project_admin_instance,
-                project=project_instance
-            )
+
             for i in (0, 1):
                 _project_user = '{}{}'.format(project_user, i)
                 _project_user_name = '{}-{}'.format(
                     _project_user, id_generator())
-                _project_user_instance = self.admin.users.create(
+                _project_user_instance = self.create_user(
+                    project_instance,
                     _project_user_name,
-                    domain=clients.OS_USER_DOMAIN_ID,
-                    default_project=project_instance,
-                    password=clients.OS_PASSWORD,
+                    self.project_member_role
                 )
                 setattr(
                     self,
                     _project_user,
                     _project_user_instance,
-                )
-                self.admin.roles.grant(
-                    self.project_member_role,
-                    user=_project_user_instance,
-                    project=project_instance
                 )
         except Exception as e:
             raise e
