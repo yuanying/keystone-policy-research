@@ -22,13 +22,13 @@ class TestUserShow(base.TestCase):
 
     def setUp(self):
         super(TestUserShow, self).setUp()
-        self.setup_project('project1')
-        self.setup_project('project2')
+        self.setup_project('project1', user=1)
+        self.setup_project('project2', user=1)
 
     def tearDown(self):
         super(TestUserShow, self).tearDown()
-        self.teardown_project('project1')
-        self.teardown_project('project2')
+        self.teardown_project('project1', user=1)
+        self.teardown_project('project2', user=1)
 
     # クラウド管理者は全てのユーザを表示することができる。
     def test_get_all_users_by_cloud_admin(self):

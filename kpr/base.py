@@ -11,6 +11,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import contextlib
 import json
 import mock
 import os
@@ -49,6 +50,17 @@ def getid(obj):
 
 class TestCase(unittest.TestCase):
 
+    @contextlib.contextmanager
+    def create_user_and_cleanup(self, project, username, role):
+        user = username
+        try:
+            user = self.create_user(project, username, role)
+            yield user
+        except Exception as e:
+            raise e
+        finally:
+            self.delete_user(project, user, role)
+
     def create_user(self, project, username, role):
         user = self.admin.users.create(
             username,
@@ -63,7 +75,7 @@ class TestCase(unittest.TestCase):
         )
         return user
 
-    def delete_user(self, project, user, role):
+    def delete_user(self, project, user, role, force=True):
         try:
             self.admin.roles.revoke(
                 role,
@@ -75,7 +87,8 @@ class TestCase(unittest.TestCase):
         try:
             self.admin.users.delete(user)
         except Exception as e:
-            pass
+            if not force:
+                raise e
 
     def os_run_text(
         self,
@@ -134,13 +147,9 @@ class TestCase(unittest.TestCase):
             name='Member'
         )
 
-    def setup_project(self, project='project1'):
+    def setup_project(self, project='project1', admin=True, user=2):
         try:
             project_name = '{}-{}'.format(project, id_generator())
-            project_admin = '{}_admin'.format(project)
-            project_admin_name = '{}_admin-{}'.format(project, id_generator())
-            project_user = '{}_user'.format(project)
-
             project_instance = self.admin.projects.create(
                 project_name,
                 clients.OS_PROJECT_DOMAIN_ID
@@ -150,6 +159,20 @@ class TestCase(unittest.TestCase):
                 project,
                 project_instance
             )
+        except Exception as e:
+            pass
+
+        if admin:
+            self.setup_project_admin(project)
+
+        self.setup_project_user(project, user)
+
+    def setup_project_admin(self, project='project1'):
+        try:
+            project_admin = '{}_admin'.format(project)
+            project_admin_name = '{}_admin-{}'.format(project, id_generator())
+            project_instance = getattr(self, project)
+
             project_admin_instance = self.create_user(
                 project_instance,
                 project_admin_name,
@@ -160,8 +183,15 @@ class TestCase(unittest.TestCase):
                 project_admin,
                 project_admin_instance
             )
+        except Exception as e:
+            pass
 
-            for i in (0, 1):
+    def setup_project_user(self, project='project1', user=2):
+        try:
+            project_user = '{}_user'.format(project)
+            project_instance = getattr(self, project)
+
+            for i in range(user):
                 _project_user = '{}{}'.format(project_user, i)
                 _project_user_name = '{}-{}'.format(
                     _project_user, id_generator())
@@ -176,48 +206,38 @@ class TestCase(unittest.TestCase):
                     _project_user_instance,
                 )
         except Exception as e:
-            raise e
+            pass
 
-    def teardown_project(self, project='project1'):
-        project_user = '{}_user'.format(project)
+    def teardown_project(self, project='project1', admin=True, user=2):
+        project_instance = getattr(self, project)
+        if admin:
+            self.teardown_project_admin(project)
+        self.teardown_project_user(project, user)
+        try:
+            self.admin.projects.delete(project_instance)
+        except Exception as e:
+            pass
+
+    def teardown_project_admin(self, project='project1'):
+        project_instance = getattr(self, project)
         project_admin = '{}_admin'.format(project)
         project_admin = getattr(self, project_admin)
-        # try:
-        #     project_admin = self.admin.users.find(name=project_admin)
-        # except Exception as e:
-        #     pass
 
-        project = getattr(self, project)
-        # try:
-        #     project = self.admin.projects.find(name=project)
-        # except Exception as e:
-        #     raise
+        self.delete_user(
+            project_instance,
+            project_admin,
+            self.project_admin_role,
+        )
 
-        try:
-            self.admin.roles.revoke(
-                self.project_admin_role,
-                user=project_admin,
-                project=project,
-            )
-        except Exception as e:
-            pass
+    def teardown_project_user(self, project='project1', user=2):
+        project_instance = getattr(self, project)
+        project_user = '{}_user'.format(project)
 
-        try:
-            self.admin.users.delete(project_admin)
-        except Exception as e:
-            pass
-
-
-        for i in (0, 1):
+        for i in range(user):
             _project_user = '{}{}'.format(project_user, i)
             _project_user = getattr(self, _project_user)
             self.delete_user(
-                project,
+                project_instance,
                 _project_user,
-                self.project_member_role
+                self.project_member_role,
             )
-
-        try:
-            self.admin.projects.delete(project)
-        except Exception as e:
-            pass

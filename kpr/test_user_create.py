@@ -22,13 +22,13 @@ class TestUserCreate(base.TestCase):
 
     def setUp(self):
         super(TestUserCreate, self).setUp()
-        self.setup_project('project1')
-        self.setup_project('project2')
+        self.setup_project('project1', user=1)
+        self.setup_project('project2', admin=False, user=0)
 
     def tearDown(self):
         super(TestUserCreate, self).tearDown()
-        self.teardown_project('project1')
-        self.teardown_project('project2')
+        self.teardown_project('project1', user=1)
+        self.teardown_project('project2', admin=False, user=0)
 
     @contextlib.contextmanager
     def create_user_by_cli(

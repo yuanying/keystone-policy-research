@@ -11,7 +11,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import contextlib
 import subprocess
 
 from kpr import base
@@ -22,13 +21,13 @@ class TestUserDelete(base.TestCase):
 
     def setUp(self):
         super(TestUserDelete, self).setUp()
-        self.setup_project('project1')
-        self.setup_project('project2')
+        self.setup_project('project1', user=1)
+        self.setup_project('project2', admin=False, user=0)
 
     def tearDown(self):
         super(TestUserDelete, self).tearDown()
-        self.teardown_project('project1')
-        self.teardown_project('project2')
+        self.teardown_project('project1', user=1)
+        self.teardown_project('project2', admin=False, user=0)
 
     def delete_user_by_cli(
         self,
@@ -67,17 +66,6 @@ class TestUserDelete(base.TestCase):
                 user_id,
             ],
         )
-
-    @contextlib.contextmanager
-    def create_user_and_cleanup(self, project, username, role):
-        user = username
-        try:
-            user = self.create_user(project, username, role)
-            yield user
-        except Exception as e:
-            raise e
-        finally:
-            self.delete_user(project, user, role)
 
     # Project1 テナント管理者は Project1 に属するユーザを削除することができる。
     def test_delete_project1_user_by_project1_admin(self):

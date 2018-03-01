@@ -22,12 +22,12 @@ class TestUserList(base.TestCase):
     def setUp(self):
         super(TestUserList, self).setUp()
         self.setup_project('project1')
-        self.setup_project('project2')
+        self.setup_project('project2', admin=False, user=0)
 
     def tearDown(self):
         super(TestUserList, self).tearDown()
         self.teardown_project('project1')
-        self.teardown_project('project2')
+        self.teardown_project('project2', admin=False, user=0)
 
     # クラウド管理者は全てのユーザリストを表示することができる。
     def test_list_all_users_by_cloud_admin(self):
