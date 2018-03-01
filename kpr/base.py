@@ -29,22 +29,69 @@ def id_generator(
     return ''.join(random.choice(chars) for _ in range(size))
 
 
+def getid(obj):
+    """Return id if argument is a Resource.
+
+    Abstracts the common pattern of allowing both an object or an object's ID
+    (UUID) as a parameter when dealing with relationships.
+    """
+    try:
+        if obj.uuid:
+            return obj.uuid
+    except AttributeError:  # nosec(cjschaef): 'obj' doesn't contain attribute
+        # 'uuid', return attribute 'id' or the 'obj'
+        pass
+    try:
+        return obj.id
+    except AttributeError:
+        return obj
+
+
 class TestCase(unittest.TestCase):
 
+    def delete_user(self, project, user, role):
+        try:
+            self.admin.roles.revoke(
+                role,
+                user=user,
+                project=project,
+            )
+        except Exception as e:
+            pass
+        try:
+            self.admin.users.delete(user)
+        except Exception as e:
+            pass
+
     def os_run_text(
-        self, command=['user', 'list'], project='admin', username='admin'):
-        args = ['openstack'] + command + ['-f', 'json']
+        self,
+        command=['user', 'list'],
+        project='admin',
+        username='admin',
+        format='json',
+    ):
+        args = ['openstack'] + command
+        if format:
+            args = args + ['-f', format]
+
         return subprocess.check_output(
             args,
             stderr=subprocess.STDOUT,
             env=self.get_os_env(project=project, username=username)
         )
 
-    def os_run(self, command=['user', 'list'], project='admin', username='admin'):
+    def os_run(
+        self,
+        command=['user', 'list'],
+        project='admin',
+        username='admin',
+        format='json',
+    ):
         return json.loads(self.os_run_text(
             command=command,
             project=project,
-            username=username
+            username=username,
+            format=format,
         ).decode('utf-8'))
 
     def get_os_env(self, project='admin', username='admin'):
@@ -161,22 +208,11 @@ class TestCase(unittest.TestCase):
         for i in (0, 1):
             _project_user = '{}{}'.format(project_user, i)
             _project_user = getattr(self, _project_user)
-            # try:
-            #     _project_user = self.admin.users.find(name=_project_user)
-            # except Exception as e:
-            #     pass
-            try:
-                self.admin.roles.revoke(
-                    self.project_member_role,
-                    user=_project_user,
-                    project=project,
-                )
-            except Exception as e:
-                pass
-            try:
-                self.admin.users.delete(_project_user)
-            except Exception as e:
-                pass
+            self.delete_user(
+                project,
+                _project_user,
+                self.project_member_role
+            )
 
         try:
             self.admin.projects.delete(project)
