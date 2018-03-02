@@ -107,7 +107,7 @@ class TestUserCreate(base.TestCase):
                 self.project1_admin,
                 self.project1,
             ) as output:
-                self.failed("project admin must not be permitted to create user")
+                self.fail("project admin must not be permitted to create user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -136,7 +136,7 @@ class TestUserCreate(base.TestCase):
                 self.project1_admin,
                 self.project1,
             ) as output:
-                self.failed("project admin must not be permitted to create user")
+                self.fail("project admin must not be permitted to create user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -156,7 +156,7 @@ class TestUserCreate(base.TestCase):
                 self.project1_user0,
                 self.project1,
             ) as output:
-                self.failed("project user must not be permitted to create user")
+                self.fail("project user must not be permitted to create user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -172,6 +172,6 @@ class TestUserCreate(base.TestCase):
                 self.project1_user0,
                 self.project1,
             ) as output:
-                self.failed("project user must not be permitted to create user")
+                self.fail("project user must not be permitted to create user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')

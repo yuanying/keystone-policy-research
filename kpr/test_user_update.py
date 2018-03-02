@@ -86,20 +86,17 @@ class TestUserUpdate(base.TestCase):
         testuser = 'testuser-{}'.format(base.id_generator())
         expected_password = testuser
 
-        try:
-            with self.create_user_and_cleanup(
-                self.project1,
-                testuser,
-                self.project_member_role,
-            ) as user:
-                self.update_user(
-                    user,
-                    run_user=self.project1_admin,
-                    run_user_project=self.project1,
-                    command=['--password', expected_password],
-                )
-        except subprocess.CalledProcessError as e:
-            self.failed("Failed to update password by project1_admin")
+        with self.create_user_and_cleanup(
+            self.project1,
+            testuser,
+            self.project_member_role,
+        ) as user:
+            self.update_user(
+                user,
+                run_user=self.project1_admin,
+                run_user_project=self.project1,
+                command=['--password', expected_password],
+            )
 
     # Project1 テナント管理者は Project1 に属するユーザのプロジェクトを変更することができない。
     def test_update_project1_user_default_project_by_project1_admin(self):
@@ -118,7 +115,7 @@ class TestUserUpdate(base.TestCase):
                     command=['--project', self.project2.id],
                     update_project=True,
                 )
-                self.failed("project admin must not be permitted to update user's project")
+                self.fail("project admin must not be permitted to update user's project")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -139,7 +136,7 @@ class TestUserUpdate(base.TestCase):
                     run_user_project=self.project1,
                     command=['--email', expected_email_address],
                 )
-                self.failed("project admin must not be permitted to update user's email")
+                self.fail("project admin must not be permitted to update user's email")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -160,7 +157,7 @@ class TestUserUpdate(base.TestCase):
                     run_user_project=self.project1,
                     command=['--password', expected_password],
                 )
-                self.failed("project admin must not be permitted to update user's password")
+                self.fail("project admin must not be permitted to update user's password")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -181,6 +178,6 @@ class TestUserUpdate(base.TestCase):
                     run_user_project=self.project1,
                     command=['--email', expected_email_address],
                 )
-                self.failed("project admin must not be permitted to update user's email")
+                self.fail("project admin must not be permitted to update user's email")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')

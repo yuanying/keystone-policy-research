@@ -38,7 +38,7 @@ class TestUserList(base.TestCase):
                 username=clients.OS_ADMIN_USERNAME,
             )
         except subprocess.CalledProcessError as e:
-            self.failed("Failed to list all User by cloud admin")
+            self.fail("Failed to list all User by cloud admin")
 
     # プロジェクト1管理者は全てのユーザリストを表示することができない。
     def test_list_all_users_by_project_admin(self):
@@ -48,7 +48,7 @@ class TestUserList(base.TestCase):
                 username=self.project1_admin.name,
                 command=['user', 'list'],
             )
-            self.failed("project admin must not be permitted to list all user")
+            self.fail("project admin must not be permitted to list all user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -60,7 +60,7 @@ class TestUserList(base.TestCase):
                 username=self.project1_user0.name,
                 command=['user', 'list'],
             )
-            self.failed("project user must not be permitted to list all user")
+            self.fail("project user must not be permitted to list all user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -75,7 +75,7 @@ class TestUserList(base.TestCase):
             # users = [project1_admin, project1_user0, project1_user1]
             self.assertEqual(3, len(users))
         except subprocess.CalledProcessError as e:
-            self.failed("Failed to list project User by project admin")
+            self.fail("Failed to list project User by project admin")
 
     # プロジェクト1ユーザはプロジェクト1のユーザリストを表示することができない。
     def test_list_project_users_by_user(self):
@@ -85,7 +85,7 @@ class TestUserList(base.TestCase):
                 username=self.project1_user0.name,
                 command=['user', 'list', '--project', self.project1.id],
             )
-            self.failed("user must not be permitted to list project user")
+            self.fail("user must not be permitted to list project user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -113,7 +113,7 @@ class TestUserList(base.TestCase):
                     username=self.project1_admin.name,
                     command=['user', 'list', '--project', self.project1.id],
                 )
-                self.failed("user must not be permitted to list project user")
+                self.fail("user must not be permitted to list project user")
             except subprocess.CalledProcessError as e:
                 self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
         except Exception as e:

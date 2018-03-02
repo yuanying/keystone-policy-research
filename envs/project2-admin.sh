@@ -1,4 +1,4 @@
-export OS_AUTH_URL=http://172.18.11.197/identity
+# export OS_AUTH_URL=http://172.18.11.197/identity
 export OS_IDENTITY_API_VERSION=3
 export OS_NO_CACHE=1
 export OS_PASSWORD=password

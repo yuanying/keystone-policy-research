@@ -101,7 +101,7 @@ class TestUserDelete(base.TestCase):
                     self.project1_admin,
                     self.project1,
                 )
-                self.failed("project admin must not be permitted to delete user")
+                self.fail("project admin must not be permitted to delete user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -139,7 +139,7 @@ class TestUserDelete(base.TestCase):
                     self.project1_admin,
                     self.project1,
                 )
-                self.failed("project admin must not be permitted to delete user")
+                self.fail("project admin must not be permitted to delete user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -164,7 +164,7 @@ class TestUserDelete(base.TestCase):
                     self.project1_user0,
                     self.project1,
                 )
-                self.failed("project admin must not be permitted to delete user")
+                self.fail("project admin must not be permitted to delete user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
 
@@ -185,6 +185,6 @@ class TestUserDelete(base.TestCase):
                     self.project1_user0,
                     self.project1,
                 )
-                self.failed("project admin must not be permitted to delete user")
+                self.fail("project admin must not be permitted to delete user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
