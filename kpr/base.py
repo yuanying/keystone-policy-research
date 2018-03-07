@@ -140,6 +140,9 @@ class TestCase(unittest.TestCase):
         super(TestCase, self).setUp()
         self.addCleanup(mock.patch.stopall)
         self.admin = clients.get_admin_client()
+        self.cloud_admin_role = self.admin.roles.find(
+            name='admin'
+        )
         self.project_admin_role = self.admin.roles.find(
             name='project_admin'
         )

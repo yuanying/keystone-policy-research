@@ -124,6 +124,22 @@ class TestUserCreate(base.TestCase):
         ) as output:
             self.assertEqual(testuser, output['name'])
 
+    # Project1 テナント管理者は Project1 に属するクラウド管理者を作成することができない。
+    def test_create_cloud_admin_by_project1_admin(self):
+        testuser = 'testuser-{}'.format(base.id_generator())
+
+        try:
+            with self.create_user_by_cli(
+                self.project1,
+                testuser,
+                self.cloud_admin_role,
+                self.project1_admin,
+                self.project1,
+            ) as output:
+                self.fail("project admin must not be permitted to create cloud admin")
+        except subprocess.CalledProcessError as e:
+            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+
     # Project1 テナント管理者は Project2 に属するテナント管理者を作成することができない。
     def test_create_project2_admin_by_project1_admin(self):
         testuser = 'testuser-{}'.format(base.id_generator())

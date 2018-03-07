@@ -10,6 +10,7 @@
 -   Python 3.5 がインストールされていること。
 -   tox がインストールされていること。
 -   python-openstackclient がインストールされていること。
+-   Keystone にクラウド管理者として `admin` ロールが作成されていること。
 -   Keystone に `project_admin` ロールが作成されていること。
 -   Keystone に `Member` ロールが作成されていること。
 -   [policy.project-admin.json](policy.project-admin.json) が Keystone に `policy.json` として設定されていること。
