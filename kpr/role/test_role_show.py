@@ -18,25 +18,23 @@ from kpr import base
 from kpr.utils import clients
 
 
-class TestProjectList(base.TestCase):
+class TestRoleShow(base.TestCase):
 
     def setUp(self):
-        super(TestUserCreate, self).setUp()
+        super(TestRoleShow, self).setUp()
         self.setup_project('project1', user=1)
-        self.setup_project('project2', admin=False, user=0)
 
     def tearDown(self):
-        super(TestUserCreate, self).tearDown()
+        super(TestRoleShow, self).tearDown()
         self.teardown_project('project1', user=1)
-        self.teardown_project('project2', admin=False, user=0)
 
-    # クラウド管理者は全てのプロジェクトを一覧表示することができる。
+    # クラウド管理者は全てのロールを表示することができる。
     # TODO(yuanying): Let's test!
-    # クラウド監査役は全てのプロジェクトを一覧表示することができる。
+    # クラウド監査役は全てのロールを表示することができる。
     # TODO(yuanying): Let's test!
-    # project1 のプロジェクト管理者はプロジェクトを一覧表示することができない。
+    # project1 のプロジェクト管理者はロールを表示することができる。
     # TODO(yuanying): Let's test!
-    # project1 のプロジェクト監査役はプロジェクトを一覧表示することができない。
+    # project1 のプロジェクト監査役はロールを表示することができる。
     # TODO(yuanying): Let's test!
-    # project1 のプロジェクトユーザはプロジェクトを一覧表示することができない。
+    # project1 のプロジェクトユーザはロールを表示することができない。
     # TODO(yuanying): Let's test!
