@@ -65,6 +65,9 @@ class TestUserShow(base.TestCase):
             )['id']
         )
 
+    # クラウド監査役は全てのユーザを表示することができる。
+    # TODO(yuanying): Let's test!
+
     # プロジェクト1管理者は自分を表示することができる。
     def test_get_self_by_project_admin(self):
         self.assertEqual(
@@ -151,3 +154,18 @@ class TestUserShow(base.TestCase):
                 user=self.project1_admin,
                 project=self.project2
             )
+
+    # プロジェクト1監査役は自分を表示することができる。
+    # TODO(yuanying): Let's test!
+
+    # プロジェクト1監査役はプロジェクト1のユーザを表示することができる。
+    # TODO(yuanying): Let's test!
+
+    # プロジェクト1監査役はプロジェクト2のプロジェクト管理者を表示できない。
+    # TODO(yuanying): Let's test!
+
+    # プロジェクト1監査役はプロジェクト2のユーザを表示できない。
+    # TODO(yuanying): Let's test!
+
+    # プロジェクト2のユーザ権限で認証されたプロジェクト1監査役はプロジェクト1のユーザを表示できない。
+    # TODO(yuanying): Let's test!

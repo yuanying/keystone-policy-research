@@ -40,6 +40,9 @@ class TestUserList(base.TestCase):
         except subprocess.CalledProcessError as e:
             self.fail("Failed to list all User by cloud admin")
 
+    # クラウド監査役は全てのユーザリストを表示することができる。
+    # TODO(yuanying): Let's test!
+
     # プロジェクト1管理者は全てのユーザリストを表示することができない。
     def test_list_all_users_by_project_admin(self):
         try:
@@ -51,6 +54,9 @@ class TestUserList(base.TestCase):
             self.fail("project admin must not be permitted to list all user")
         except subprocess.CalledProcessError as e:
             self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+
+    # プロジェクト1監査役は全てのユーザリストを表示することができない。
+    # TODO(yuanying): Let's test!
 
     # プロジェクト1ユーザは全てのユーザリストを表示することができない。
     def test_list_all_users_by_user(self):
@@ -76,6 +82,9 @@ class TestUserList(base.TestCase):
             self.assertEqual(3, len(users))
         except subprocess.CalledProcessError as e:
             self.fail("Failed to list project User by project admin")
+
+    # プロジェクト1監査役はプロジェクト1のユーザリストを表示することができる。
+    # TODO(yuanying): Let's test!
 
     # プロジェクト1ユーザはプロジェクト1のユーザリストを表示することができない。
     def test_list_project_users_by_user(self):
@@ -124,3 +133,7 @@ class TestUserList(base.TestCase):
                 user=self.project1_admin,
                 project=self.project2
             )
+
+    # プロジェクト1監査役はプロジェクト2のメンバーとして、
+    # プロジェクト2のユーザリストを表示することができない。
+    # TODO(yuanying): Let's test!
