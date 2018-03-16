@@ -143,14 +143,26 @@ class TestCase(unittest.TestCase):
         self.cloud_admin_role = self.admin.roles.find(
             name='admin'
         )
+        self.cloud_auditor_role = self.admin.roles.find(
+            name='admin_auditor'
+        )
         self.project_admin_role = self.admin.roles.find(
             name='project_admin'
+        )
+        self.project_auditor_role = self.admin.roles.find(
+            name='project_auditor'
         )
         self.project_member_role = self.admin.roles.find(
             name='Member'
         )
 
-    def setup_project(self, project='project1', admin=True, user=2):
+    def setup_project(
+        self,
+        project='project1',
+        admin=True,
+        auditor=False,
+        user=2
+    ):
         try:
             project_name = '{}-{}'.format(project, id_generator())
             project_instance = self.admin.projects.create(
@@ -167,27 +179,42 @@ class TestCase(unittest.TestCase):
 
         if admin:
             self.setup_project_admin(project)
+        if auditor:
+            self.setup_project_auditor(project)
 
         self.setup_project_user(project, user)
 
-    def setup_project_admin(self, project='project1'):
-        try:
-            project_admin = '{}_admin'.format(project)
-            project_admin_name = '{}_admin-{}'.format(project, id_generator())
-            project_instance = getattr(self, project)
+    def get_role_by_name(self, role='admin'):
+        return {
+            'admin': self.project_admin_role,
+            'auditor': self.project_auditor_role,
+        }[role]
 
-            project_admin_instance = self.create_user(
+    def setup_project_admin_or_auditor(self, project='project1', role='admin'):
+        try:
+            user = '{}_{}'.format(project, role)
+            user_name = '{}-{}'.format(user, id_generator())
+            project_instance = getattr(self, project)
+            role = self.get_role_by_name(role)
+
+            user_instance = self.create_user(
                 project_instance,
-                project_admin_name,
-                self.project_admin_role
+                user_name,
+                role
             )
             setattr(
                 self,
-                project_admin,
-                project_admin_instance
+                user,
+                user_instance
             )
         except Exception as e:
             pass
+
+    def setup_project_admin(self, project='project1'):
+        self.setup_project_admin_or_auditor(project=project, role='admin')
+
+    def setup_project_auditor(self, project='project1'):
+        self.setup_project_admin_or_auditor(project=project, role='auditor')
 
     def setup_project_user(self, project='project1', user=2):
         try:
@@ -211,26 +238,42 @@ class TestCase(unittest.TestCase):
         except Exception as e:
             pass
 
-    def teardown_project(self, project='project1', admin=True, user=2):
+    def teardown_project(
+        self,
+        project='project1',
+        admin=True,
+        auditor=False,
+        user=2
+    ):
         project_instance = getattr(self, project)
         if admin:
             self.teardown_project_admin(project)
+        if auditor:
+            self.teardown_project_auditor(project)
+
         self.teardown_project_user(project, user)
         try:
             self.admin.projects.delete(project_instance)
         except Exception as e:
             pass
 
-    def teardown_project_admin(self, project='project1'):
+    def teardown_project_admin_or_auditor(self, project='project1', role='admin'):
         project_instance = getattr(self, project)
-        project_admin = '{}_admin'.format(project)
-        project_admin = getattr(self, project_admin)
+        user = '{}_{}'.format(project, role)
+        user = getattr(self, user)
+        role = self.get_role_by_name(role)
 
         self.delete_user(
             project_instance,
-            project_admin,
-            self.project_admin_role,
+            user,
+            role,
         )
+
+    def teardown_project_admin(self, project='project1'):
+        self.teardown_project_admin_or_auditor(project=project, role='admin')
+
+    def teardown_project_auditor(self, project='project1'):
+        self.teardown_project_admin_or_auditor(project=project, role='auditor')
 
     def teardown_project_user(self, project='project1', user=2):
         project_instance = getattr(self, project)

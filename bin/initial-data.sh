@@ -12,6 +12,8 @@
 
 ##
 
+openstack role create admin_auditor
+openstack role create project_auditor
 openstack role create project_admin
 
 openstack project create projectA \
