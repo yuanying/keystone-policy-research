@@ -61,6 +61,19 @@ class TestCase(unittest.TestCase):
         finally:
             self.delete_user(project, user, role)
 
+    def create_admin_auditor(self):
+        project = self.admin.projects.find(
+            name=clients.OS_ADMIN_PROJECT_NAME
+        )
+        username = 'admin-auditor-{}'.format(id_generator())
+        return self.create_user(project, username, self.cloud_admin_auditor_role)
+
+    def delete_admin_auditor(self, user, force=True):
+        project = self.admin.projects.find(
+            name=clients.OS_ADMIN_PROJECT_NAME
+        )
+        self.delete_user(project, user, self.cloud_admin_auditor_role, force=force)
+
     def create_user(self, project, username, role):
         user = self.admin.users.create(
             username,
@@ -143,7 +156,7 @@ class TestCase(unittest.TestCase):
         self.cloud_admin_role = self.admin.roles.find(
             name='admin'
         )
-        self.cloud_auditor_role = self.admin.roles.find(
+        self.cloud_admin_auditor_role = self.admin.roles.find(
             name='admin_auditor'
         )
         self.project_admin_role = self.admin.roles.find(
@@ -155,6 +168,11 @@ class TestCase(unittest.TestCase):
         self.project_member_role = self.admin.roles.find(
             name='Member'
         )
+        self.admin_auditor = self.create_admin_auditor()
+
+    def tearDown(self):
+        super(TestCase, self).tearDown()
+        self.delete_admin_auditor(self.admin_auditor)
 
     def setup_project(
         self,
