@@ -22,19 +22,69 @@ class TestRoleShow(base.TestCase):
 
     def setUp(self):
         super(TestRoleShow, self).setUp()
-        self.setup_project('project1', user=1)
+        self.setup_project('project1', auditor=True, user=1)
 
     def tearDown(self):
         super(TestRoleShow, self).tearDown()
-        self.teardown_project('project1', user=1)
+        self.teardown_project('project1', auditor=True, user=1)
 
-    # クラウド管理者は全てのロールを表示することができる。
+    def all_roles(self):
+        return [
+            self.cloud_admin_role,
+            self.cloud_admin_auditor_role,
+            self.project_admin_role,
+            self.project_auditor_role,
+            self.project_member_role,
+        ]
+
+    def _test_get_all_roles(self, username, project_name):
+        for role in self.all_roles():
+            self.assertEqual(
+                role.id,
+                self.os_run(
+                    command=['role', 'show', role.id],
+                    project=project_name,
+                    username=username,
+                )['id']
+            )
+
+    # クラウド管理者はロールを表示することができる。
     # TODO(yuanying): Let's test!
-    # クラウド監査役は全てのロールを表示することができる。
-    # TODO(yuanying): Let's test!
+
+    # クラウド監査役はロールを表示することができる。
+    def test_get_all_roles_by_cloud_admin_auditor(self):
+        self._test_get_all_roles(
+            self.admin_auditor.name,
+            clients.OS_ADMIN_PROJECT_NAME,
+        )
+
     # project1 のプロジェクト管理者はロールを表示することができる。
-    # TODO(yuanying): Let's test!
+    def test_get_all_roles_by_project1_admin(self):
+        self._test_get_all_roles(
+            self.project1_admin.name,
+            self.project1.name,
+        )
+
     # project1 のプロジェクト監査役はロールを表示することができる。
-    # TODO(yuanying): Let's test!
+    def test_get_all_roles_by_project1_auditor(self):
+        self._test_get_all_roles(
+            self.project1_auditor.name,
+            self.project1.name,
+        )
+
     # project1 のプロジェクトユーザはロールを表示することができない。
-    # TODO(yuanying): Let's test!
+    def test_get_all_roles_by_project1_member(self):
+        username = self.project1_user0.name
+        project_name = self.project1.name
+        for role in self.all_roles():
+            try:
+                self.os_run(
+                    command=['role', 'show', role.id],
+                    project=project_name,
+                    username=username,
+                )
+                self.fail("User '{}' must not show {}".format(
+                    username, role.name
+                ))
+            except Exception as e:
+                self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')

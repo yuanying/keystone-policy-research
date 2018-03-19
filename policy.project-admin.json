@@ -70,7 +70,7 @@
     "identity:ec2_create_credential": "rule:admin_or_owner",
     "identity:ec2_delete_credential": "rule:admin_required or (rule:owner and user_id:%(target.credential.user_id)s)",
 
-    "identity:get_role": "rule:admin_required",
+    "identity:get_role": "rule:admin_required or role:admin_auditor or role:project_admin or role:project_auditor",
     "identity:list_roles": "rule:admin_required or role:admin_auditor or role:project_admin or role:project_auditor",
     "identity:create_role": "rule:admin_required",
     "identity:update_role": "rule:admin_required",
