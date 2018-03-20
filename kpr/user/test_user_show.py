@@ -23,12 +23,12 @@ class TestUserShow(base.TestCase):
 
     def setUp(self):
         super(TestUserShow, self).setUp()
-        self.setup_project('project1', user=1)
+        self.setup_project('project1', auditor=True, user=1)
         self.setup_project('project2', user=1)
 
     def tearDown(self):
         super(TestUserShow, self).tearDown()
-        self.teardown_project('project1', user=1)
+        self.teardown_project('project1', auditor=True, user=1)
         self.teardown_project('project2', user=1)
 
     def _show_user_id(self, target_user, user, project):
@@ -80,7 +80,13 @@ class TestUserShow(base.TestCase):
         self.assertShowUser(self.project2_user0, user, project)
 
     # クラウド監査役は全てのユーザを表示することができる。
-    # TODO(yuanying): Let's test!
+    def test_get_all_users_by_cloud_auditor(self):
+        user = self.admin_auditor.name
+        project = clients.OS_ADMIN_PROJECT_NAME
+        self.assertShowUser(self.project1_admin, user, project)
+        self.assertShowUser(self.project2_admin, user, project)
+        self.assertShowUser(self.project1_user0, user, project)
+        self.assertShowUser(self.project2_user0, user, project)
 
     # プロジェクト1管理者は自分を表示することができる。
     def test_get_self_by_project_admin(self):
@@ -116,16 +122,35 @@ class TestUserShow(base.TestCase):
             self.assertNotShowUser(self.project1_user0, user, project)
 
     # プロジェクト1監査役は自分を表示することができる。
-    # TODO(yuanying): Let's test!
+    def test_get_self_by_project1_auditor(self):
+        user = self.project1_auditor.name
+        project = self.project1.name
+        self.assertShowUser(self.project1_auditor, user, project)
 
     # プロジェクト1監査役はプロジェクト1のユーザを表示することができる。
-    # TODO(yuanying): Let's test!
+    def test_get_project1_user_by_project1_auditor(self):
+        user = self.project1_auditor.name
+        project = self.project1.name
+        self.assertShowUser(self.project1_admin, user, project)
+        self.assertShowUser(self.project1_user0, user, project)
 
     # プロジェクト1監査役はプロジェクト2のプロジェクト管理者を表示できない。
-    # TODO(yuanying): Let's test!
+    def test_get_project2_admin_by_project1_auditor(self):
+        user = self.project1_auditor.name
+        project = self.project1.name
+        self.assertNotShowUser(self.project2_admin, user, project)
 
     # プロジェクト1監査役はプロジェクト2のユーザを表示できない。
-    # TODO(yuanying): Let's test!
+    def test_get_project2_user_by_project1_auditor(self):
+        user = self.project1_auditor.name
+        project = self.project1.name
+        self.assertNotShowUser(self.project2_user0, user, project)
 
     # プロジェクト2のユーザ権限で認証されたプロジェクト1監査役はプロジェクト1のユーザを表示できない。
-    # TODO(yuanying): Let's test!
+    def test_get_project1_user_by_project1_auditor_with_project2(self):
+        with self.grant_role_temporary(self.project_member_role, self.project1_auditor, self.project2):
+            user = self.project1_auditor.name
+            project = self.project2.name
+            # project2 で認証していても、自分を表示することは可能。
+            self.assertShowUser(self.project1_auditor, user, project)
+            self.assertNotShowUser(self.project1_user0, user, project)
