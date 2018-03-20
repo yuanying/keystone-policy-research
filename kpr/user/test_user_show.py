@@ -11,6 +11,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import contextlib
 from keystoneauth1.exceptions import http
 import subprocess
 
@@ -30,130 +31,89 @@ class TestUserShow(base.TestCase):
         self.teardown_project('project1', user=1)
         self.teardown_project('project2', user=1)
 
+    def _show_user_id(self, target_user, user, project):
+        return self.os_run(
+            command=['user', 'show', target_user.id],
+            username=user,
+            project=project,
+        )['id']
+
+    @contextlib.contextmanager
+    def grant_role_temporary(self, target_role, user, project):
+        try:
+            self.admin.roles.grant(
+                target_role,
+                user=user,
+                project=project
+            )
+            yield
+        except Exception as e:
+            pass
+        finally:
+            self.admin.roles.revoke(
+                target_role,
+                user=user,
+                project=project
+            )
+
+    def assertShowUser(self, target_user, user, project):
+        self.assertEqual(
+            target_user.id,
+            self._show_user_id(target_user, user, project)
+        )
+
+    def assertNotShowUser(self, target_user, user, project):
+        try:
+            self._show_user_id(target_user, user, project)
+            self.self.fail('{} must not be able to show {}'.format(user, target_user.name))
+        except subprocess.CalledProcessError as e:
+            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+
+
     # クラウド管理者は全てのユーザを表示することができる。
     def test_get_all_users_by_cloud_admin(self):
-        self.assertEqual(
-            self.project1_admin.id,
-            self.os_run(
-                command=['user', 'show', self.project1_admin.id],
-                project=clients.OS_ADMIN_PROJECT_NAME,
-                username=clients.OS_ADMIN_USERNAME,
-            )['id']
-        )
-        self.assertEqual(
-            self.project2_admin.id,
-            self.os_run(
-                command=['user', 'show', self.project2_admin.id],
-                project=clients.OS_ADMIN_PROJECT_NAME,
-                username=clients.OS_ADMIN_USERNAME,
-            )['id']
-        )
-        self.assertEqual(
-            self.project1_user0.id,
-            self.os_run(
-                command=['user', 'show', self.project1_user0.id],
-                project=clients.OS_ADMIN_PROJECT_NAME,
-                username=clients.OS_ADMIN_USERNAME,
-            )['id']
-        )
-        self.assertEqual(
-            self.project2_user0.id,
-            self.os_run(
-                command=['user', 'show', self.project2_user0.id],
-                project=clients.OS_ADMIN_PROJECT_NAME,
-                username=clients.OS_ADMIN_USERNAME,
-            )['id']
-        )
+        user = clients.OS_ADMIN_USERNAME
+        project = clients.OS_ADMIN_PROJECT_NAME
+        self.assertShowUser(self.project1_admin, user, project)
+        self.assertShowUser(self.project2_admin, user, project)
+        self.assertShowUser(self.project1_user0, user, project)
+        self.assertShowUser(self.project2_user0, user, project)
 
     # クラウド監査役は全てのユーザを表示することができる。
     # TODO(yuanying): Let's test!
 
     # プロジェクト1管理者は自分を表示することができる。
     def test_get_self_by_project_admin(self):
-        self.assertEqual(
-            self.project1_admin.id,
-            self.os_run(
-                project=self.project1.name,
-                username=self.project1_admin.name,
-                command=['user', 'show', self.project1_admin.id],
-            )['id']
-        )
+        user = self.project1_admin.name
+        project = self.project1.name
+        self.assertShowUser(self.project1_admin, user, project)
 
     # プロジェクト1管理者はプロジェクト1のユーザを表示することができる。
     def test_get_same_project_user_by_project_admin(self):
-        self.assertEqual(
-            self.project1_user0.id,
-            self.os_run(
-                project=self.project1.name,
-                username=self.project1_admin.name,
-                command=['user', 'show', self.project1_user0.id],
-            )['id']
-        )
+        user = self.project1_admin.name
+        project = self.project1.name
+        self.assertShowUser(self.project1_user0, user, project)
 
     # プロジェクト1管理者はプロジェクト2のプロジェクト管理者を表示できない。
     def test_get_different_project_admin_by_project_admin(self):
-        try:
-            self.os_run(
-                project=self.project1.name,
-                username=self.project1_admin.name,
-                command=['user', 'show', self.project2_admin.id],
-            )
-            self.fail("User '{}' must not show {}".format(
-                'project1_admin', 'project2_admin'
-            ))
-        except subprocess.CalledProcessError as e:
-            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+        user = self.project1_admin.name
+        project = self.project1.name
+        self.assertNotShowUser(self.project2_admin, user, project)
 
     # プロジェクト1管理者はプロジェクト2のユーザを表示できない。
     def test_get_different_project_user_by_project_admin(self):
-        try:
-            self.os_run(
-                project=self.project1.name,
-                username=self.project1_admin.name,
-                command=['user', 'show', self.project2_user0.id],
-            )
-            self.fail("User '{}' must not show {}".format(
-                'project1_admin', 'project2_user0'
-            ))
-        except subprocess.CalledProcessError as e:
-            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+        user = self.project1_admin.name
+        project = self.project1.name
+        self.assertNotShowUser(self.project2_user0, user, project)
 
     # プロジェクト2のユーザ権限で認証されたプロジェクト1管理者はプロジェクト1のユーザを表示できない。
     def test_get_different_project_user_by_project_admin_user(self):
-        try:
-            self.admin.roles.grant(
-                self.project_member_role,
-                user=self.project1_admin,
-                project=self.project2
-            )
+        with self.grant_role_temporary(self.project_member_role, self.project1_admin, self.project2):
+            user = self.project1_admin.name
+            project = self.project2.name
             # project2 で認証していても、自分を表示することは可能。
-            self.assertEqual(
-                self.project1_admin.id,
-                self.os_run(
-                    project=self.project2.name,
-                    username=self.project1_admin.name,
-                    command=['user', 'show', self.project1_admin.id],
-                )['id']
-            )
-            try:
-                self.os_run(
-                    project=self.project2.name,
-                    username=self.project1_admin.name,
-                    command=['user', 'show', self.project1_user0.id],
-                )
-                self.fail("User '{}' must not show {}".format(
-                    'project1_admin', 'project1_user0'
-                ))
-            except subprocess.CalledProcessError as e:
-                self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
-        except Exception as e:
-            pass
-        finally:
-            self.admin.roles.revoke(
-                self.project_member_role,
-                user=self.project1_admin,
-                project=self.project2
-            )
+            self.assertShowUser(self.project1_admin, user, project)
+            self.assertNotShowUser(self.project1_user0, user, project)
 
     # プロジェクト1監査役は自分を表示することができる。
     # TODO(yuanying): Let's test!
