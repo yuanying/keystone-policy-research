@@ -29,111 +29,100 @@ class TestUserList(base.TestCase):
         self.teardown_project('project1')
         self.teardown_project('project2', admin=False, user=0)
 
+    def _list_all_or_project_user(self, target_project=None, username=None, project_name=None):
+        command = ['user', 'list']
+        if target_project is not None:
+            command = command + ['--project', target_project.id]
+        return self.os_run(
+            command=command,
+            project=project_name,
+            username=username,
+        )
+
+    def assertListAllUser(self, username, project_name):
+        self.assertGreaterEqual(
+            len(self._list_all_or_project_user(username=username, project_name=project_name)),
+            3
+        )
+
+    def assertNotListAllUser(self, username, project_name):
+        try:
+            self._list_all_or_project_user(username=username, project_name=project_name)
+            self.fail("{} must not be permitted to list all user".format(username))
+        except subprocess.CalledProcessError as e:
+            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+
+    def assertListProjectUser(self, target_project, username, project_name):
+        expected_users = self.admin.role_assignments.list(project=target_project.id)
+        self.assertEqual(
+            len(expected_users),
+            len(self._list_all_or_project_user(target_project=target_project, username=username, project_name=project_name))
+        )
+
+    def assertNotListProjectUser(self, target_project, username, project_name):
+        try:
+            self._list_all_or_project_user(target_project=target_project, username=username, project_name=project_name)
+            self.fail("{} must not be permitted to list {} user".format(username, target_project.name))
+        except subprocess.CalledProcessError as e:
+            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+
     # クラウド管理者は全てのユーザリストを表示することができる。
     def test_list_all_users_by_cloud_admin(self):
-        try:
-            self.os_run(
-                command=['user', 'list'],
-                project=clients.OS_ADMIN_PROJECT_NAME,
-                username=clients.OS_ADMIN_USERNAME,
-            )
-        except subprocess.CalledProcessError as e:
-            self.fail("Failed to list all User by cloud admin")
+        username = clients.OS_ADMIN_USERNAME
+        project = clients.OS_ADMIN_PROJECT_NAME
+        self.assertListAllUser(username, project)
 
     # クラウド監査役は全てのユーザリストを表示することができる。
     # TODO(yuanying): Let's test!
 
     # プロジェクト1管理者は全てのユーザリストを表示することができない。
     def test_list_all_users_by_project_admin(self):
-        try:
-            self.os_run(
-                project=self.project1.name,
-                username=self.project1_admin.name,
-                command=['user', 'list'],
-            )
-            self.fail("project admin must not be permitted to list all user")
-        except subprocess.CalledProcessError as e:
-            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+        username = self.project1_admin.name
+        project = self.project1.name
+        self.assertNotListAllUser(username, project)
 
     # プロジェクト1監査役は全てのユーザリストを表示することができない。
     # TODO(yuanying): Let's test!
 
     # プロジェクト1ユーザは全てのユーザリストを表示することができない。
     def test_list_all_users_by_user(self):
-        try:
-            self.os_run(
-                project=self.project1.name,
-                username=self.project1_user0.name,
-                command=['user', 'list'],
-            )
-            self.fail("project user must not be permitted to list all user")
-        except subprocess.CalledProcessError as e:
-            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+        username = self.project1_user0.name
+        project = self.project1.name
+        self.assertNotListAllUser(username, project)
 
     # プロジェクト1管理者はプロジェクト1のユーザリストを表示することができる。
     def test_list_project_users_by_project_admin(self):
-        try:
-            users = self.os_run(
-                project=self.project1.name,
-                username=self.project1_admin.name,
-                command=['user', 'list', '--project', self.project1.id],
-            )
-            # users = [project1_admin, project1_user0, project1_user1]
-            self.assertEqual(3, len(users))
-        except subprocess.CalledProcessError as e:
-            self.fail("Failed to list project User by project admin")
+        username = self.project1_admin.name
+        project = self.project1.name
+        self.assertListProjectUser(self.project1, username, project)
 
     # プロジェクト1監査役はプロジェクト1のユーザリストを表示することができる。
     # TODO(yuanying): Let's test!
 
     # プロジェクト1ユーザはプロジェクト1のユーザリストを表示することができない。
     def test_list_project_users_by_user(self):
-        try:
-            self.os_run(
-                project=self.project1.name,
-                username=self.project1_user0.name,
-                command=['user', 'list', '--project', self.project1.id],
-            )
-            self.fail("user must not be permitted to list project user")
-        except subprocess.CalledProcessError as e:
-            self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
+        username = self.project1_user0.name
+        project = self.project1.name
+        self.assertNotListProjectUser(self.project1, username, project)
 
     # プロジェクト1管理者はプロジェクト2のメンバーとして、
-    # プロジェクト2のユーザリストを表示することができない。
+    # プロジェクト1/2のユーザリストを表示することができない。
     def test_list_different_project_user_by_project_admin_user(self):
-        try:
-            self.admin.roles.grant(
-                self.project_member_role,
-                user=self.project1_admin,
-                project=self.project2
-            )
+        with self.grant_role_temporary(self.project_member_role, self.project1_admin, self.project2):
+            username = self.project1_admin.name
+            project = self.project2.name
             # project2 で認証チェック。
             self.assertEqual(
                 self.project1_admin.id,
                 self.os_run(
-                    project=self.project2.name,
-                    username=self.project1_admin.name,
+                    project=project,
+                    username=username,
                     command=['user', 'show', self.project1_admin.id],
                 )['id']
             )
-            try:
-                self.os_run(
-                    project=self.project2.name,
-                    username=self.project1_admin.name,
-                    command=['user', 'list', '--project', self.project1.id],
-                )
-                self.fail("user must not be permitted to list project user")
-            except subprocess.CalledProcessError as e:
-                self.assertRegex(e.output.decode('utf-8'), 'HTTP 403')
-        except Exception as e:
-            pass
-        finally:
-            self.admin.roles.revoke(
-                self.project_member_role,
-                user=self.project1_admin,
-                project=self.project2
-            )
+            self.assertNotListProjectUser(self.project1, username, project)
+            self.assertNotListProjectUser(self.project2, username, project)
 
     # プロジェクト1監査役はプロジェクト2のメンバーとして、
-    # プロジェクト2のユーザリストを表示することができない。
+    # プロジェクト1/2のユーザリストを表示することができない。
     # TODO(yuanying): Let's test!

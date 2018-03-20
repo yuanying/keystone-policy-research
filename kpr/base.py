@@ -51,6 +51,24 @@ def getid(obj):
 class TestCase(unittest.TestCase):
 
     @contextlib.contextmanager
+    def grant_role_temporary(self, target_role, user, project):
+        try:
+            self.admin.roles.grant(
+                target_role,
+                user=user,
+                project=project
+            )
+            yield
+        except Exception as e:
+            pass
+        finally:
+            self.admin.roles.revoke(
+                target_role,
+                user=user,
+                project=project
+            )
+
+    @contextlib.contextmanager
     def create_user_and_cleanup(self, project, username, role):
         user = username
         try:

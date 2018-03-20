@@ -11,7 +11,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import contextlib
 from keystoneauth1.exceptions import http
 import subprocess
 
@@ -37,24 +36,6 @@ class TestUserShow(base.TestCase):
             username=user,
             project=project,
         )['id']
-
-    @contextlib.contextmanager
-    def grant_role_temporary(self, target_role, user, project):
-        try:
-            self.admin.roles.grant(
-                target_role,
-                user=user,
-                project=project
-            )
-            yield
-        except Exception as e:
-            pass
-        finally:
-            self.admin.roles.revoke(
-                target_role,
-                user=user,
-                project=project
-            )
 
     def assertShowUser(self, target_user, user, project):
         self.assertEqual(
