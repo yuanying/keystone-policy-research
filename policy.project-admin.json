@@ -42,7 +42,7 @@
     "identity:delete_project": "rule:admin_required",
 
     "identity:get_user": "rule:admin_or_owner or role:admin_auditor or ((role:project_admin or role:project_auditor) and project_id:%(target.user.default_project_id)s)",
-    "identity:list_users": "rule:admin_required",
+    "identity:list_users": "rule:admin_required or role:admin_auditor",
     "identity:create_user": "rule:admin_required or (role:project_admin and project_id:%(user.default_project_id)s and user_domain_id:%(user.domain_id)s)",
     "identity:update_user": "rule:admin_required or (role:project_admin and project_id:%(target.user.default_project_id)s and project_id:%(user.default_project_id)s and user_domain_id:%(target.user.domain_id)s)",
     "identity:delete_user": "rule:admin_required or (role:project_admin and project_id:%(target.user.default_project_id)s and user_domain_id:%(target.user.domain_id)s)",
@@ -93,7 +93,7 @@
     "identity:create_grant": "rule:admin_required or (role:project_admin and project_id:%(target.project.id)s and project_id:%(target.user.default_project_id)s and (not 'admin':%(target.role.name)s))",
     "identity:revoke_grant": "rule:admin_required or (role:project_admin and project_id:%(target.project.id)s and project_id:%(target.user.default_project_id)s)",
 
-    "identity:list_role_assignments": "rule:admin_required or (role:project_admin and project_id:%(scope.project.id)s)",
+    "identity:list_role_assignments": "rule:admin_required or role:admin_auditor or ((role:project_admin or role:project_auditor) and project_id:%(scope.project.id)s)",
     "identity:list_role_assignments_for_tree": "rule:admin_required",
 
     "identity:get_policy": "rule:admin_required",

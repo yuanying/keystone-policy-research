@@ -21,12 +21,12 @@ class TestUserList(base.TestCase):
 
     def setUp(self):
         super(TestUserList, self).setUp()
-        self.setup_project('project1')
+        self.setup_project('project1', auditor=True)
         self.setup_project('project2', admin=False, user=0)
 
     def tearDown(self):
         super(TestUserList, self).tearDown()
-        self.teardown_project('project1')
+        self.teardown_project('project1', auditor=True)
         self.teardown_project('project2', admin=False, user=0)
 
     def _list_all_or_project_user(self, target_project=None, username=None, project_name=None):
@@ -73,7 +73,10 @@ class TestUserList(base.TestCase):
         self.assertListAllUser(username, project)
 
     # クラウド監査役は全てのユーザリストを表示することができる。
-    # TODO(yuanying): Let's test!
+    def test_list_all_users_by_cloud_admin_auditor(self):
+        username = self.admin_auditor.name
+        project = clients.OS_ADMIN_PROJECT_NAME
+        self.assertListAllUser(username, project)
 
     # プロジェクト1管理者は全てのユーザリストを表示することができない。
     def test_list_all_users_by_project_admin(self):
@@ -82,7 +85,10 @@ class TestUserList(base.TestCase):
         self.assertNotListAllUser(username, project)
 
     # プロジェクト1監査役は全てのユーザリストを表示することができない。
-    # TODO(yuanying): Let's test!
+    def test_list_all_users_by_project_auditor(self):
+        username = self.project1_auditor.name
+        project = self.project1.name
+        self.assertNotListAllUser(username, project)
 
     # プロジェクト1ユーザは全てのユーザリストを表示することができない。
     def test_list_all_users_by_user(self):
@@ -97,7 +103,10 @@ class TestUserList(base.TestCase):
         self.assertListProjectUser(self.project1, username, project)
 
     # プロジェクト1監査役はプロジェクト1のユーザリストを表示することができる。
-    # TODO(yuanying): Let's test!
+    def test_list_project_users_by_project_admin(self):
+        username = self.project1_auditor.name
+        project = self.project1.name
+        self.assertListProjectUser(self.project1, username, project)
 
     # プロジェクト1ユーザはプロジェクト1のユーザリストを表示することができない。
     def test_list_project_users_by_user(self):
@@ -125,4 +134,18 @@ class TestUserList(base.TestCase):
 
     # プロジェクト1監査役はプロジェクト2のメンバーとして、
     # プロジェクト1/2のユーザリストを表示することができない。
-    # TODO(yuanying): Let's test!
+    def test_list_different_project_user_by_project_auditor_user(self):
+        with self.grant_role_temporary(self.project_member_role, self.project1_auditor, self.project2):
+            username = self.project1_auditor.name
+            project = self.project2.name
+            # project2 で認証チェック。
+            self.assertEqual(
+                self.project1_auditor.id,
+                self.os_run(
+                    project=project,
+                    username=username,
+                    command=['user', 'show', self.project1_admin.id],
+                )['id']
+            )
+            self.assertNotListProjectUser(self.project1, username, project)
+            self.assertNotListProjectUser(self.project2, username, project)
